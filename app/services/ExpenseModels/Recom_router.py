@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException , APIRouter
+from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 import numpy as np
-from .Recommander import ExpenseAdvisor  
+import pandas as pd
+from .Recommander import ExpenseAdvisor
 
 routeRecommander = APIRouter()
 
@@ -10,13 +11,69 @@ routeRecommander = APIRouter()
 class ExpenseRequest(BaseModel):
     expenses: List[float]
 
+# Structured metrics models
+class WeeklyBreakdown(BaseModel):
+    day_0: float
+    day_1: float
+    day_2: float
+    day_3: float
+    day_4: float
+    day_5: float
+    day_6: float
+
+class MetricsResponse(BaseModel):
+    average_daily_expense: float
+    day_to_day_volatility: float
+    highest_daily_expense: float
+    lowest_daily_expense: float
+    highest_spending_day: int
+    daily_trend: float
+    spending_spikes: int
+    normal_spending_days: int
+    weekly_pattern_detected: bool
+    weekly_breakdown: WeeklyBreakdown
+
 # Response model
 class ExpenseRecommendation(BaseModel):
     recommendations: str
-    metrics: dict
+    metrics: MetricsResponse
 
-# Initialize ExpenseAdvisor
-advisor = ExpenseAdvisor()
+# Modify the ExpenseAdvisor's preprocess_expenses method
+class StructuredExpenseAdvisor(ExpenseAdvisor):
+    def preprocess_expenses(self, expenses: np.ndarray) -> Dict:
+        """
+        Prepare expense metrics as structured data
+        """
+        df = pd.DataFrame({'daily_expenses': expenses})
+        
+        # Calculate weekly breakdown
+        weekday_avg = df.groupby(df.index % 7)['daily_expenses'].mean()
+        weekly_breakdown = {
+            f"day_{day}": float(avg) 
+            for day, avg in weekday_avg.items()
+        }
+
+        # Calculate trend
+        trend = np.polyfit(np.arange(len(df)), df['daily_expenses'], 1)[0]
+        
+        # Structure all metrics
+        metrics = MetricsResponse(
+            average_daily_expense=float(df['daily_expenses'].mean()),
+            day_to_day_volatility=float(df['daily_expenses'].std()),
+            highest_daily_expense=float(df['daily_expenses'].max()),
+            lowest_daily_expense=float(df['daily_expenses'].min()),
+            highest_spending_day=int(df['daily_expenses'].idxmax() + 1),
+            daily_trend=float(trend),
+            spending_spikes=int(len(df[df['daily_expenses'] > df['daily_expenses'].mean() + 2*df['daily_expenses'].std()])),
+            normal_spending_days=int(len(df[abs(df['daily_expenses'] - df['daily_expenses'].mean()) < df['daily_expenses'].std()])),
+            weekly_pattern_detected=bool(weekday_avg.std() / weekday_avg.mean() > 0.1),
+            weekly_breakdown=WeeklyBreakdown(**weekly_breakdown)
+        )
+        
+        return {"metrics": metrics}
+
+# Initialize advisor
+advisor = StructuredExpenseAdvisor()
 
 @routeRecommander.post("/analyze-expenses", response_model=ExpenseRecommendation)
 async def analyze_expenses(request: ExpenseRequest):
@@ -27,7 +84,7 @@ async def analyze_expenses(request: ExpenseRequest):
         request: ExpenseRequest containing an array of daily expenses
         
     Returns:
-        ExpenseRecommendation containing recommendations and metrics
+        ExpenseRecommendation containing recommendations and structured metrics
     """
     try:
         # Validate input length
@@ -53,15 +110,15 @@ async def analyze_expenses(request: ExpenseRequest):
                 detail="Expenses cannot be negative"
             )
 
-        # Get metrics
-        metrics_dict = advisor.preprocess_expenses(expenses_array)
+        # Get structured metrics
+        result = advisor.preprocess_expenses(expenses_array)
         
         # Generate recommendations
         recommendations = await advisor.generate_recommendations(expenses_array)
         
         return ExpenseRecommendation(
             recommendations=recommendations,
-            metrics=metrics_dict
+            metrics=result["metrics"]
         )
 
     except Exception as e:

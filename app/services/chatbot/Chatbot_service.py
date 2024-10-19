@@ -6,7 +6,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from langchain_huggingface import HuggingFaceEndpoint
-
+from huggingface_hub import login
 # Suppress the specific FutureWarning
 warnings.filterwarnings("ignore", category=FutureWarning, module="transformers.tokenization_utils_base")
 
@@ -16,7 +16,7 @@ load_dotenv()
 
 # Get the Hugging Face API token from environment variables
 api_token = os.getenv("HUGGING_FACE_TOKEN")
-
+login(api_token)
 # Debug: Print the token to ensure it's being retrieved correctly
 # print(f"Hugging Face API Token: {api_token}")
 
