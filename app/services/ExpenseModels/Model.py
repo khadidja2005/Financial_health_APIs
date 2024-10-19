@@ -14,25 +14,51 @@ class ExpenseDataset(Dataset):
         self.sequence_length = sequence_length
         
     def __len__(self):
-        return len(self.data) - self.sequence_length - 10
+        return len(self.data) - self.sequence_length -10
         
     def __getitem__(self, idx):
-        x = self.data[idx:idx + self.sequence_length]
-        y = self.data[idx + self.sequence_length:idx + self.sequence_length + 10]
-        return x, y
-# Load the saved model and scaler
+      x = self.data[idx:idx + self.sequence_length]        # Input sequence
+      y = self.data[idx + self.sequence_length:idx + self.sequence_length + 10]  # Target sequence
+      return x, y
+
+def load_and_prepare_data(csv_path):
+    """
+    Load and prepare data from CSV file with Date and Amount columns
+    """
+    # Read the CSV file
+    df = pd.read_csv(csv_path)
+    sequence_length = df.shape[0]
+    # Convert Date column to datetime
+    df['Date'] = pd.to_datetime(df['Date'])
+    
+    # Sort by date to ensure temporal order
+    df = df.sort_values(by='Date').reset_index(drop=True)
+    
+    # Extract time-based features
+    df['hour'] = df['Date'].dt.hour
+    df['day'] = df['Date'].dt.day
+    df['month'] = df['Date'].dt.month
+    df['day_of_week'] = df['Date'].dt.dayofweek
+    
+    # Scale the features
+    scaler = MinMaxScaler()
+    features = ['hour', 'day', 'month', 'day_of_week', 'Amount']
+    scaled_data = scaler.fit_transform(df[features])
+    
+    return scaled_data, scaler, df
+
 def save_model(model, scaler, save_dir='saved_models'):
     """Save the trained model and scaler"""
     os.makedirs(save_dir, exist_ok=True)
     
-    # Save the PyTorch model
     model_path = os.path.join(save_dir, 'expense_predictor.pth')
     torch.save(model.state_dict(), model_path)
     
-    # Save the scaler
     scaler_path = os.path.join(save_dir, 'scaler.pkl')
     joblib.dump(scaler, scaler_path)
     
+    print(f"Model and scaler saved in {save_dir}")
+
 class ExpensePredictor(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_length):
         super(ExpensePredictor, self).__init__()
@@ -48,7 +74,6 @@ class ExpensePredictor(nn.Module):
             batch_first=True
         )
         
-        # Changed to output the same number of features for each prediction
         self.fc = nn.Linear(hidden_size, output_length * input_size)
     
     def forward(self, x):
@@ -58,24 +83,8 @@ class ExpensePredictor(nn.Module):
         out, _ = self.gru(x, h0)
         out = out[:, -1, :] 
         out = self.fc(out)
-        # Reshape output to match target dimensions: [batch_size, sequence_length, features]
         out = out.view(batch_size, self.output_length, self.input_size)
         return out
-
-def prepare_data(df, date_column='date', amount_column='amount'):
-    # Convert date strings to datetime objects and extract features
-    df[date_column] = pd.to_datetime(df[date_column])
-    df['hour'] = df[date_column].dt.hour
-    df['day'] = df[date_column].dt.day
-    df['month'] = df[date_column].dt.month
-    df['day_of_week'] = df[date_column].dt.dayofweek
-    
-    # Scale the features
-    scaler = MinMaxScaler()
-    features = ['hour', 'day', 'month', 'day_of_week', amount_column]
-    scaled_data = scaler.fit_transform(df[features])
-    
-    return scaled_data, scaler
 
 def train_model(model, train_loader, num_epochs, learning_rate, device):
     criterion = nn.MSELoss()
@@ -88,11 +97,9 @@ def train_model(model, train_loader, num_epochs, learning_rate, device):
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
             
-            # Forward pass
             outputs = model(batch_x)
             loss = criterion(outputs, batch_y)
             
-            # Backward pass and optimize
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -109,37 +116,26 @@ def predict_future_expenses(model, last_sequence, scaler, device):
         input_seq = torch.FloatTensor(last_sequence).unsqueeze(0).to(device)
         predictions = model(input_seq)
         
-        # Get predictions back to CPU and numpy
-        predictions = predictions.cpu().numpy()[0]  # Remove batch dimension
-        
-        # Inverse transform the entire sequence
+        predictions = predictions.cpu().numpy()[0]
         inversed_predictions = scaler.inverse_transform(predictions)
-        
-        # Extract only the amount predictions (last column)
-        amount_predictions = inversed_predictions[:, -1]
+        amount_predictions = inversed_predictions[:, -1]  # Amount is the last column
         
         return amount_predictions
 
-def main():
+def main(csv_path):
     # Hyperparameters
     sequence_length = 20
     hidden_size = 64
     num_layers = 2
     batch_size = 32
-    num_epochs = 100
+    num_epochs = 500
     learning_rate = 0.001
     prediction_length = 10
     
-    # Example data creation for demonstration purposes (will replace with actual data)
-    dates = pd.date_range(start='2022-01-01', end='2024-01-01', freq='h')
-    df = pd.DataFrame({
-        'date': dates,
-        'amount': np.random.normal(1000, 200, len(dates))
-    })
+    print(f"Loading data from {csv_path}...")
+    scaled_data, scaler, df = load_and_prepare_data(csv_path)
     
-    # Prepare data
-    scaled_data, scaler = prepare_data(df)
-    input_size = scaled_data.shape[1]  # Number of features
+    input_size = scaled_data.shape[1]
     
     # Create dataset and dataloader
     dataset = ExpenseDataset(scaled_data, sequence_length)
@@ -147,6 +143,8 @@ def main():
     
     # Initialize model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Using device: {device}")
+    
     model = ExpensePredictor(
         input_size=input_size,
         hidden_size=hidden_size,
@@ -155,12 +153,27 @@ def main():
     ).to(device)
     
     # Train model
+    print("\nStarting training...")
     train_model(model, train_loader, num_epochs, learning_rate, device)
+    
+    # Save the trained model
     save_model(model, scaler)
+    
     # Make predictions
     last_sequence = scaled_data[-sequence_length:]
     predictions = predict_future_expenses(model, last_sequence, scaler, device)
-    print("Predicted next 10 expenses:", predictions)
+    #print(predictions)
+    # Print predictions with dates
+    #last_date = df['Date'].iloc[-1]
+    #future_dates = pd.date_range(start=last_date, periods=prediction_length + 1)[1:]
+    
+    # print("\nPredicted expenses for the next 10 periods:")
+    # for date, amount in zip(future_dates, predictions):
+    #     print(f"{date.strftime('%Y-%m-%d %H:%M')}: ${amount:.2f}")
 
 if __name__ == "__main__":
-    main()
+    csv_path = "expense_data_2.csv" 
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the absolute path
+    abs_file_path = os.path.abspath(os.path.join(base_dir, csv_path))
+    main(abs_file_path)

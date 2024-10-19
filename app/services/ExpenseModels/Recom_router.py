@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from .Recommander import ExpenseAdvisor
 
-routeRecommander = APIRouter()
+routeRecommander = APIRouter() 
 
 # Request model
 class ExpenseRequest(BaseModel):

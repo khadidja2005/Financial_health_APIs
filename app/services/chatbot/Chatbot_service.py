@@ -70,6 +70,6 @@ def process_user_inputRag(input_text):
     # Create the RAG prompt
     rag_prompt = rag_prompt_template.format(question=input_text, context=context)
     
-    # Generate a response using the LLM
+    # Generate a response using the LLm
     response = ConversationModel(rag_prompt)
     return response

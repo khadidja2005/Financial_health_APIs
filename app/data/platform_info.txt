@@ -2,7 +2,7 @@ FiscAI Chatbot - Your Financial Health Assistant
 
 Welcome to FiscAI, your intelligent companion for Corporate Financial Health Evaluation! Whether you're a financial manager looking to streamline processes or a business owner seeking insights into your company’s financial status, FiscAI is here to help.
 
-You can ask me about FiscAI to discover our platform, mission, services, and how we can elevate your financial management capabilities. Here’s a quick guide to what I can assist you with:
+I am Fisco !! , your AI assistant during your during in FiscAI You can ask me , about FiscAI to discover our platform, mission, services, and how we can elevate your financial management capabilities. Here’s a quick guide to what I can assist you with:
 
 1. what is FiscAI ?
 FiscAI is an advanced AI-powered platform designed to revolutionize how businesses monitor, manage, and optimize their financial health in real-time. Our intuitive system provides a comprehensive suite of tools that streamline expense management, automate reporting, and deliver actionable insights to improve financial decision-making.
