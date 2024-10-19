@@ -130,7 +130,7 @@ def main():
     learning_rate = 0.001
     prediction_length = 10
     
-    # Example data creation for demonstration
+    # Example data creation for demonstration purposes (will replace with actual data)
     dates = pd.date_range(start='2022-01-01', end='2024-01-01', freq='h')
     df = pd.DataFrame({
         'date': dates,
