@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
+import os
 from app.controllers.chatbot.Chatbot_controller import  router as chatbot_router
 from app.services.ExpenseModels.router import routerEX as expenses_router
 from app.services.ExpenseModels.Recom_router import routeRecommander as recommander_router
@@ -22,7 +23,9 @@ app.include_router(sql_router , prefix="/sql")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to FastAPI!"}
-
 if __name__ == "__main__":
-    # Specify the port here within the code
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # Get port from environment variable or default to 8080
+    port = int(os.getenv("PORT", 8080))
+    
+    # Bind to 0.0.0.0 to listen on all available network interfaces
+    uvicorn.run(app, host="0.0.0.0", port=port)
