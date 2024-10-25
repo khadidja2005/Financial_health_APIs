@@ -21,6 +21,7 @@ app.include_router(recommander_router, prefix="/recommand")
 app.include_router(goal_router, prefix="/goal")
 app.include_router(sql_router , prefix="/sql")
 os.environ["PORT"] = "8000"
+os.environ["HOST"] = "0.0.0.0"
 
 @app.get("/")
 def read_root():
