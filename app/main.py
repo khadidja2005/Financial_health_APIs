@@ -8,6 +8,8 @@ from app.services.GoalPlanner.GoalRouter import routeGoal as goal_router
 from app.SQLGenerator.SQLRouter import routerSQL as sql_router
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
+os.environ["PORT"] = "8000"
+os.environ["HOST"] = "0.0.0.0"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,13 +17,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 app.include_router( expenses_router , prefix="/expenses")
 app.include_router(chatbot_router, prefix="/chatbot")
 app.include_router(recommander_router, prefix="/recommand")
 app.include_router(goal_router, prefix="/goal")
 app.include_router(sql_router , prefix="/sql")
-os.environ["PORT"] = "8000"
-os.environ["HOST"] = "0.0.0.0"
+
 
 @app.get("/")
 def read_root():
