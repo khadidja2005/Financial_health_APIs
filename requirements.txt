@@ -9,9 +9,6 @@ langchain-community==0.3.0
 langchain-core==0.3.12
 langchain-huggingface==0.1.0
 langchain-text-splitters==0.3.0
-langsmith==0.1.136
-language-selector==0.1
-launchpadlib==1.10.16
 matplotlib==3.9.0
 matplotlib-inline==0.1.7
 ml-dtypes==0.3.2
