@@ -31,4 +31,4 @@ def read_root():
 if __name__ == "__main__":
     
     # Bind to 0.0.0.0 to listen on all available network interfaces
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ["PORT"]))
+    uvicorn.run(app, host="0.0.0.0", port=8000)
