@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 import os
 from app.controllers.chatbot.Chatbot_controller import  router as chatbot_router
+from app.InstructionGuide.Router import router as instruction_router
 from app.services.ExpenseModels.router import routerEX as expenses_router
 from app.services.ExpenseModels.Recom_router import routeRecommander as recommander_router
 from app.services.GoalPlanner.GoalRouter import routeGoal as goal_router
@@ -23,6 +24,7 @@ app.include_router(chatbot_router, prefix="/chatbot")
 app.include_router(recommander_router, prefix="/recommand")
 app.include_router(goal_router, prefix="/goal")
 app.include_router(sql_router , prefix="/sql")
+app.include_router(instruction_router, prefix="/chat")
 
 
 @app.get("/")

@@ -1,0 +1,26 @@
+Here’s a refined overview and additional details for FiscAI’s user flow, including instructions on using key features, uploading files, and navigating the dashboard with graphs and charts:
+
+1. Editing Your Profile
+Step: Click on the profile icon at the top right corner.
+Action: You’ll have options to edit your username, email, and password directly from the profile settings page.
+2. Accessing Manager and Employee Accounts
+Note: Only the company admin has permission to access user accounts on FiscAI. They can add, modify, and delete employee profiles within the platform, ensuring secure and controlled access.
+3. Using the AI Expense Recommender
+Accessing Recommender: In the sidebar, find and select the AI Advisor link.
+AI Insights: You’ll be redirected to the AI Advisor page, where you can view recommendations based on past expenses. This feature provides insights such as:
+Average Daily Spending
+Highest and Lowest Expenses
+Spending Spikes
+Purpose: These insights help financial managers identify patterns in company expenses, allowing for better-informed budgeting and planning.
+4. FiscAI’s Financial Goal Planning Assistance
+Goal Tracking: FiscAI offers an intelligent assistant to help financial managers set and achieve goals.
+Accessing Goal Feature: Once on the AI Advisor page, add your specific financial goals. The assistant will generate a customized plan with action steps to reach your objectives.
+5. Uploading Files
+Supported Formats: Users can upload files in PDF or CSV formats.
+Purpose: Uploaded files help streamline data input for expenses, revenue, and cash flow, allowing FiscAI to generate analytics and reports automatically.
+6. Navigating the Dashboard
+Graphs and Charts: In the dashboard, you’ll find visual representations of the company’s financial data, including:
+Expense Overview: Summarizes monthly, quarterly, or yearly spending.
+Revenue Trends: Provides insights into income sources over time.
+Cash Flow Analysis: Tracks inflow and outflow of funds for better financial management.
+By integrating these features, FiscAI empowers financial managers to monitor expenses, set financial targets, and utilize AI-driven insights to make strategic financial decisions effortlessly.

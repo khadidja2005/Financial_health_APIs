@@ -14,19 +14,106 @@ class SQLQueryGenerator:
         
         Args:
             schema_info: Dictionary containing table and column information
-            Example:
-            {
-                "users": {
-                    "id": {"type": "INTEGER", "primary_key": True},
-                    "name": {"type": "VARCHAR(100)"},
-                    "email": {"type": "VARCHAR(255)"}
-                },
-                "orders": {
-                    "id": {"type": "INTEGER", "primary_key": True},
-                    "user_id": {"type": "INTEGER", "foreign_key": "users.id"},
-                    "amount": {"type": "DECIMAL(10,2)"}
-                }
-            }
+    Exemple :{
+    "Organization": {
+        "id": {"type": "VARCHAR", "primary_key": True, "default": "cuid()"},
+        "name": {"type": "VARCHAR"},
+        "ownerId": {"type": "VARCHAR", "foreign_key": "User.id"},
+        "createdAt": {"type": "TIMESTAMP", "default": "now()"},
+        "updatedAt": {"type": "TIMESTAMP", "default": "updatedAt"}
+    },
+    "CashFlow": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "cash_inflow": {"type": "DECIMAL"},
+        "cash_outflow": {"type": "DECIMAL"},
+        "net_cash_flow": {"type": "DECIMAL"},
+        "description": {"type": "TEXT", "nullable": True},
+        "category": {"type": "VARCHAR(50)", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Expenses": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "amount": {"type": "DECIMAL"},
+        "expense_category": {"type": "VARCHAR(50)", "nullable": True},
+        "department": {"type": "VARCHAR(50)", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Revenue": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "amount": {"type": "DECIMAL"},
+        "product_line": {"type": "VARCHAR(50)", "nullable": True},
+        "customer_type": {"type": "VARCHAR(50)", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Profit": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "revenue": {"type": "DECIMAL"},
+        "expenses": {"type": "DECIMAL"},
+        "net_profit": {"type": "DECIMAL"},
+        "profit_margin": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Budget": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "fiscal_year": {"type": "VARCHAR(50)", "nullable": True},
+        "department": {"type": "VARCHAR(50)", "nullable": True},
+        "allocated_budget": {"type": "DECIMAL"},
+        "spent_budget": {"type": "DECIMAL"},
+        "remaining_budget": {"type": "DECIMAL"},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Debt": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "debt_type": {"type": "VARCHAR(50)", "nullable": True},
+        "principal": {"type": "DECIMAL"},
+        "interest_rate": {"type": "DECIMAL", "nullable": True},
+        "maturity_date": {"type": "TIMESTAMP", "nullable": True},
+        "payment_due_date": {"type": "TIMESTAMP", "nullable": True},
+        "amount_paid": {"type": "DECIMAL", "nullable": True},
+        "outstanding_balance": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Investments": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "investment_type": {"type": "VARCHAR(50)", "nullable": True},
+        "investment_amount": {"type": "DECIMAL"},
+        "investment_date": {"type": "TIMESTAMP"},
+        "returns": {"type": "DECIMAL", "nullable": True},
+        "risk_level": {"type": "VARCHAR(50)", "nullable": True},
+        "current_value": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Funding": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "funding_round": {"type": "VARCHAR(50)", "nullable": True},
+        "amount_raised": {"type": "DECIMAL"},
+        "date": {"type": "TIMESTAMP"},
+        "investor_name": {"type": "VARCHAR(50)", "nullable": True},
+        "valuation": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "FinancialReports": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "report_type": {"type": "VARCHAR(50)", "nullable": True},
+        "start_date": {"type": "TIMESTAMP"},
+        "end_date": {"type": "TIMESTAMP"},
+        "content": {"type": "TEXT", "nullable": True},
+        "created_at": {"type": "TIMESTAMP", "default": "now()"},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    }
+}
+
         """
         # Initialize the Mistral model
         self.llm = HuggingFaceEndpoint(
@@ -146,31 +233,113 @@ Generate the SQL query: [/INST]"""
 
 async def main():
     # Example schema
-    schema = {
-        "users": {
-            "id": {"type": "INTEGER", "primary_key": True},
-            "name": {"type": "VARCHAR(100)"},
-            "email": {"type": "VARCHAR(255)"},
-            "created_at": {"type": "TIMESTAMP"}
-        },
-        "orders": {
-            "id": {"type": "INTEGER", "primary_key": True},
-            "user_id": {"type": "INTEGER", "foreign_key": "users.id"},
-            "total_amount": {"type": "DECIMAL(10,2)"},
-            "status": {"type": "VARCHAR(50)"},
-            "order_date": {"type": "TIMESTAMP"}
-        }
+    schema ={
+    "Organization": {
+        "id": {"type": "VARCHAR", "primary_key": True, "default": "cuid()"},
+        "name": {"type": "VARCHAR"},
+        "ownerId": {"type": "VARCHAR", "foreign_key": "User.id"},
+        "createdAt": {"type": "TIMESTAMP", "default": "now()"},
+        "updatedAt": {"type": "TIMESTAMP", "default": "updatedAt"}
+    },
+    "CashFlow": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "cash_inflow": {"type": "DECIMAL"},
+        "cash_outflow": {"type": "DECIMAL"},
+        "net_cash_flow": {"type": "DECIMAL"},
+        "description": {"type": "TEXT", "nullable": True},
+        "category": {"type": "VARCHAR(50)", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Expenses": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "amount": {"type": "DECIMAL"},
+        "expense_category": {"type": "VARCHAR(50)", "nullable": True},
+        "department": {"type": "VARCHAR(50)", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Revenue": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "amount": {"type": "DECIMAL"},
+        "product_line": {"type": "VARCHAR(50)", "nullable": True},
+        "customer_type": {"type": "VARCHAR(50)", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Profit": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "date": {"type": "TIMESTAMP"},
+        "revenue": {"type": "DECIMAL"},
+        "expenses": {"type": "DECIMAL"},
+        "net_profit": {"type": "DECIMAL"},
+        "profit_margin": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Budget": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "fiscal_year": {"type": "VARCHAR(50)", "nullable": True},
+        "department": {"type": "VARCHAR(50)", "nullable": True},
+        "allocated_budget": {"type": "DECIMAL"},
+        "spent_budget": {"type": "DECIMAL"},
+        "remaining_budget": {"type": "DECIMAL"},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Debt": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "debt_type": {"type": "VARCHAR(50)", "nullable": True},
+        "principal": {"type": "DECIMAL"},
+        "interest_rate": {"type": "DECIMAL", "nullable": True},
+        "maturity_date": {"type": "TIMESTAMP", "nullable": True},
+        "payment_due_date": {"type": "TIMESTAMP", "nullable": True},
+        "amount_paid": {"type": "DECIMAL", "nullable": True},
+        "outstanding_balance": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Investments": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "investment_type": {"type": "VARCHAR(50)", "nullable": True},
+        "investment_amount": {"type": "DECIMAL"},
+        "investment_date": {"type": "TIMESTAMP"},
+        "returns": {"type": "DECIMAL", "nullable": True},
+        "risk_level": {"type": "VARCHAR(50)", "nullable": True},
+        "current_value": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "Funding": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "funding_round": {"type": "VARCHAR(50)", "nullable": True},
+        "amount_raised": {"type": "DECIMAL"},
+        "date": {"type": "TIMESTAMP"},
+        "investor_name": {"type": "VARCHAR(50)", "nullable": True},
+        "valuation": {"type": "DECIMAL", "nullable": True},
+        "description": {"type": "TEXT", "nullable": True},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
+    },
+    "FinancialReports": {
+        "id": {"type": "INTEGER", "primary_key": True, "auto_increment": True},
+        "report_type": {"type": "VARCHAR(50)", "nullable": True},
+        "start_date": {"type": "TIMESTAMP"},
+        "end_date": {"type": "TIMESTAMP"},
+        "content": {"type": "TEXT", "nullable": True},
+        "created_at": {"type": "TIMESTAMP", "default": "now()"},
+        "organizationId": {"type": "VARCHAR", "foreign_key": "Organization.id"}
     }
-    
+}
+
     # Initialize the generator
     generator = SQLQueryGenerator(schema)
     
     # Example queries
     test_queries = [
-        "Show me all users who have placed orders over $100",
-        "Find the total order amount for each user in the last month",
-        "List users who haven't placed any orders",
-        "Get the average order amount by user, only for users with more than 5 orders"
+    "List all debts with outstanding balances over $10,000 and their maturity dates",
+    "Get the average expense amount by department, only for departments with more than 5 expenses",
     ]
     
     # Test the generator

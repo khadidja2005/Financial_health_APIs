@@ -16,8 +16,8 @@ class ExpenseAdvisor:
             repo_id="mistralai/Mistral-7B-Instruct-v0.3",
                 model_kwargs={
         "huggingface_api_token": os.getenv("HUGGING_FACE_TOKEN"),
-        "model_type": "text-generation"
-    }
+        "model_type": "text-generation" , 
+    } 
         )
         
         # Create prompt template
@@ -49,10 +49,10 @@ Format your response in clear sections with bullet points. Focus on actionable i
         # Calculate key metrics
         weekday_avg = df.groupby(df.index % 7)['daily_expenses'].mean()
         metrics = {
-            'average_daily_expense': df['daily_expenses'].mean(),
+            'average_expense': df['daily_expenses'].mean(),
             'expense_std': df['daily_expenses'].std(),
-            'highest_daily_expense': df['daily_expenses'].max(),
-            'lowest_daily_expense': df['daily_expenses'].min(),
+            'highest_expense': df['daily_expenses'].max(),
+            'lowest_expense': df['daily_expenses'].min(),
             'highest_spending_day': df['daily_expenses'].idxmax() + 1,  
             'weekly_pattern': weekday_avg.std() / weekday_avg.mean() > 0.1,  
             'expense_trend': np.polyfit(np.arange(len(df)), df['daily_expenses'], 1)[0],  
@@ -62,10 +62,10 @@ Format your response in clear sections with bullet points. Focus on actionable i
         
         # Format metrics for the prompt
         metrics_text = f"""Daily Expense Analysis:
-- Average Daily Expense: ${metrics['average_daily_expense']:,.2f}
+- Average Daily Expense: ${metrics['average_expense']:,.2f}
 - Day-to-Day Volatility: ${metrics['expense_std']:,.2f}
-- Highest Daily Expense: ${metrics['highest_daily_expense']:,.2f} (Day {metrics['highest_spending_day']})
-- Lowest Daily Expense: ${metrics['lowest_daily_expense']:,.2f}
+- Highest Daily Expense: ${metrics['highest_expense']:,.2f} (Day {metrics['highest_spending_day']})
+- Lowest Daily Expense: ${metrics['lowest_expense']:,.2f}
 - Daily Trend: ${metrics['expense_trend']:,.2f} per day
 - Number of Spending Spikes: {metrics['spending_spikes']} days
 - Days with Normal Spending: {metrics['consistent_days']} days
@@ -91,7 +91,6 @@ Weekly Breakdown:
 async def main():
     # Sample data for demonstration
     expenses = np.random.normal(100000, 10000, 30)  # 30 periods of expenses
-    
     advisor = ExpenseAdvisor()
     recommendations = await advisor.generate_recommendations(expenses)
     print("\nGenerated Recommendations:\n")
